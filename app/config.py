@@ -22,6 +22,7 @@ class Configuration:
         self.email = cp.get('DEFAULT', 'email')
         self.folder = cp.get('DEFAULT', 'folder')
         self.subjects = list(dict(cp.items('SUBJECTS')).values())
+        self.remove_angle_brackets = cp.getboolean('DEFAULT', 'remove_angle_brackets')
         self.cp = cp
 
         # params to store on-call

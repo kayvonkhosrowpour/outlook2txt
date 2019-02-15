@@ -8,6 +8,7 @@ from https://www.codementor.io/aliacetrefli/how-to-read-outlook-emails-by-python
 
 import os
 import win32com.client
+import re
 
 def process(config):
 	# create folder to save files
@@ -32,6 +33,11 @@ def process(config):
 	except:
 		raise ValueError('No such folder found.')
 
+	# create regexs to parse
+	regexs = []
+	if config.remove_angle_brackets:
+		regexs.append(r'<.*>')
+
 	# look through all email messages
 	num_processed = 0
 	for i, m in enumerate(folder.Items):
@@ -54,11 +60,29 @@ def process(config):
 			while os.path.isfile(filename):
 				filename = os.path.join(config.save_folder, 'message%d-%d.txt' % (i, ct))
 				ct += 1
+			# format email body by removing excess info
+			new_body = format_body(m.Body, regexs)
 			# output txt file
 			f = open(filename, 'w')
-			f.write(m.Body)
+			f.write(new_body)
 			f.close()
 			num_processed += 1
 
 	return num_processed
 
+def format_body(body, regexs):
+
+	# match lines to regexs
+	new_body = []
+	for line in body.split('\n'):
+		for reg_exp in regexs:
+			line = re.sub(reg_exp, '', line)
+		if line.strip():
+			new_body.append(line)
+	
+	# convert back to string
+	new_body = '\n'.join(new_body)
+
+	# return new_body if we needed to edit it, otherwise
+	# return the unmodified body
+	return new_body if len(regexs) > 0 else m.Body
